@@ -1,0 +1,42 @@
+version: '2'
+services:
+  rasp_data:
+    image: busybox
+    volumes:
+      - ./misc/data:/var/lib/mysql
+    container_name: rasp_data
+
+  rasp_mysql:
+    image: mysql:5.7
+    env_file: .env
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    ports:
+      - "13306:3306"
+    volumes_from:
+      - rasp_data
+    volumes:
+#      - ../application/initial.sql:/docker-entrypoint-initdb.d/initial.sql
+      - ../application/:/docker-entrypoint-initdb.d/
+    container_name: rasp_mysql
+
+  rasp_nginx:
+    build: ./rasp_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../:/var/www/html
+    links:
+      - rasp_web73
+    container_name: rasp_nginx
+
+  rasp_web73:
+    build: ./rasp_web73
+    volumes:
+      - ../:/var/www/html
+    links:
+      - rasp_mysql
+    env_file: .env
+    container_name: rasp_web73
+
+
